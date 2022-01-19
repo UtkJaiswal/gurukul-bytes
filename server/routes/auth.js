@@ -55,7 +55,7 @@ router.post(
       }
       //sign the  token so that any other user cannot login into another users account
       const authToken = jwt.sign(data,JWT_SECRET)
-      console.log(authToken)
+      
       success=true;
       res.json({success,authToken});
 
