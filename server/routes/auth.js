@@ -72,6 +72,9 @@ router.post('/login',[
   body('password','Password cannot be blank').exists()
 ],async(req,res)=>{
   let success=false
+  let waitForFiveMinutes = false;
+  
+
   const errors = validationResult(req);
   if(!errors.isEmpty()) {
     return res.status(400).json({errors:errors.array()})
@@ -83,17 +86,42 @@ router.post('/login',[
     //check if a user with given email exists or not
     if(!user) {
       success=false
-      return res.status(400).json({error:"Please use correct credentials"})
+      return res.status(400).json({success,waitForFiveMinutes,error:"Please use correct credentials"})
     }
-    //compare the password
+
     
+    
+
+    //compare the password
     const passwordCompare = await bcrypt.compare(password,user.password);
     
     //check if password of the user is  correct or not
     if(!passwordCompare) {
       success=false
-      return res.status(400).json({success,error:"Please use correct credentials"})
+    
+      //count of wrong password attempts increased
+      user.numberOfIncorrectLoginAttempts++;
+      
+
+      //check if user has already tried more than 2 times and the last attempt was not before 5 minutes
+      const timeNow = new Date();
+      const diffMs = timeNow - user.lastIncorrectLoginTime;
+      const diffMins = Math.round(((diffMs % 86400000) % 3600000) / 60000);
+      //lastIncorrect login time updated to current time
+      user.lastIncorrectLoginTime = new Date();
+      const updatedUser = await User.findByIdAndUpdate(user._id,{$set:user},{new:true});
+      if(user.numberOfIncorrectLoginAttempts>=3 &&  diffMins<5){
+        waitForFiveMinutes=true;
+        return res.status(400).json({success,waitForFiveMinutes,error:"Please use correct credentials"})
+      }
+      
+      return res.status(400).json({success,waitForFiveMinutes,error:"Please use correct credentials"})
     }
+    //since password is correct so we will now change numberOfIncorrectLoginAttempts to zero and lastIncorrect login time to default
+    user.numberOfIncorrectLoginAttempts=0;
+    user.lastIncorrectLoginTime = "2020-01-01";
+    waitForFiveMinutes=false;
+    const updatedUser = await User.findByIdAndUpdate(user._id,{$set:user},{new:true});
     const data = {
       user:{
         id:user.id

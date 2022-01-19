@@ -33,6 +33,14 @@ const UserSchema = new Schema({
     profile_picture:{
         data:Buffer,
         contentType:String
+    },
+    numberOfIncorrectLoginAttempts:{
+        type:Number,
+        default:0
+    },
+    lastIncorrectLoginTime:{
+        type:Date,
+        default:"2020-01-01"
     }
 })
 
