@@ -87,7 +87,8 @@ router.post('/login',[
     }
     //compare the password
     
-    const passwordCompare = bcrypt.compare(password,user.password);
+    const passwordCompare = await bcrypt.compare(password,user.password);
+    
     //check if password of the user is  correct or not
     if(!passwordCompare) {
       success=false
