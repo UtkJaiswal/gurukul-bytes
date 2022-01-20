@@ -31,8 +31,8 @@ const UserSchema = new Schema({
     required: true,
   },
   profile_picture: {
-    data: Buffer,
-    contentType: String,
+    type: String,
+    default:""
   },
   numberOfIncorrectLoginAttempts: {
     type: Number,

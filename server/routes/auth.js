@@ -5,12 +5,16 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fetchuser = require('../middleware/fetchuser')
+const upload = require('../middleware/upload')
 
 const JWT_SECRET = 'Hello$%789';
 
+const app = express();
+app.use('../uploads',express.static('uploads'))
+
 //ROUTE 1: Create a User using POST request:"/api/auth/createUser". No authentication required
 router.post(
-  "/createUser",
+  "/createUser",upload.single('profile_picture'),
   [
     body("email", "Enter a valid E-mail").isEmail(),
     body("password", "Password must be atleast 5 characters").isLength({
@@ -19,6 +23,7 @@ router.post(
   ],
   async (req, res) => {
     let success=false
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       return res.status(400).json({ success,errors: errors.array() });
@@ -37,6 +42,12 @@ router.post(
       const salt = await bcrypt.genSalt(10);//generate salt to make password more secured
       const securedPassword = await bcrypt.hash(req.body.password,salt);
       //create a new user
+      let path=""
+      console.log("req.file=",req.file)
+      if(req.file){
+        path=req.file.path;
+        console.log("path detected")
+      }
       user = await User.create({
         first_name: req.body.first_name,
         last_name: req.body.last_name,
@@ -45,9 +56,13 @@ router.post(
         email: req.body.email,
         password: securedPassword,
         address: req.body.address,
-        profile_picture: req.body.profile_picture,
+        profile_picture:path
       });
-
+      // console.log("req=",req.file)
+      // if(req.file){
+      //   user.profile_picture=req.file.path
+      //   console.log("mai aaya")
+      // }
       const data = {
         user:{
           id:user.id
