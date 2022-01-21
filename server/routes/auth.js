@@ -7,7 +7,8 @@ const jwt = require('jsonwebtoken');
 const fetchuser = require('../middleware/fetchuser')
 const upload = require('../middleware/upload')
 
-const JWT_SECRET = 'Hello$%789';
+const myModule = require('../constants')
+const JWT_SECRET=myModule.JWT_SECRET
 
 const app = express();
 app.use('../uploads',express.static('uploads'))
@@ -22,31 +23,33 @@ router.post(
     }),
   ],
   async (req, res) => {
-    let success=false
+    let success=false;
+    let userExists=false;
     
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ success,errors: errors.array() });
+      return res.status(400).json({ success,userExists,errors: errors.array() });
     }
 
     
     try {
       //check whether the user email already exists
       let user = await User.findOne({ email: req.body.email });
+      userExists=true;
       if (user) {
         return res
           .status(400)
-          .json({ success,error: "User with this email already exists" });
+          .json({ success,userExists,error: "User with this email already exists" });
       }
 
       const salt = await bcrypt.genSalt(10);//generate salt to make password more secured
       const securedPassword = await bcrypt.hash(req.body.password,salt);
       //create a new user
       let path=""
-      console.log("req.file=",req.file)
+      
       if(req.file){
         path=req.file.path;
-        console.log("path detected")
+        
       }
       user = await User.create({
         first_name: req.body.first_name,
@@ -58,11 +61,7 @@ router.post(
         address: req.body.address,
         profile_picture:path
       });
-      // console.log("req=",req.file)
-      // if(req.file){
-      //   user.profile_picture=req.file.path
-      //   console.log("mai aaya")
-      // }
+      
       const data = {
         user:{
           id:user.id
@@ -72,7 +71,7 @@ router.post(
       const authToken = jwt.sign(data,JWT_SECRET)
       
       success=true;
-      res.json({success,authToken});
+      res.json({success,userExists,authToken});
 
     } catch (error) {
       console.error(error.message);

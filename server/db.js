@@ -2,7 +2,8 @@
 
 const mongoose = require('mongoose')
 
-const mongoURI = "mongodb+srv://dbUser:4F_E$$4T.nLSneb@cluster0.99wh3.mongodb.net/gurukul-bytes?retryWrites=true&w=majority"
+const myModule = require('./constants')
+const mongoURI = myModule.mongoURI
 
 const connectToMongo = ()=>{
     mongoose.connect(mongoURI,()=>{

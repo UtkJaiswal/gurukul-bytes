@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 
-const JWT_SECRET = 'Hello$%789';
+const myModule = require('../constants')
+const JWT_SECRET = myModule.JWT_SECRET
 
 const fetchuser = (req,res,next)=>{
     //Get the user from jwt token and add it to req object
