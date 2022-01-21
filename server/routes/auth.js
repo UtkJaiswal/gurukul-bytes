@@ -13,6 +13,15 @@ const JWT_SECRET=myModule.JWT_SECRET
 const app = express();
 app.use('../uploads',express.static('uploads'))
 
+
+//ROUTE 0: Route to test after deployment
+router.get(
+  //http://localhost:5000/api/auth/test
+  "/test",(req,res)=>{
+    return res.json("Test Successful");
+  }
+)
+
 //ROUTE 1: Create a User using POST request:"/api/auth/createUser". No authentication required
 router.post(
   "/createUser",upload.single('profile_picture'),
@@ -28,6 +37,7 @@ router.post(
     
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log("error=",errors)
       return res.status(400).json({ success,userExists,errors: errors.array() });
     }
 
